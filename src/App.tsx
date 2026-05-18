@@ -11,6 +11,7 @@ import EventsPage from './pages/EventsPage'
 import ReportsPage from './pages/ReportsPage'
 import UsersPage from './pages/UsersPage'
 import DeviceLogsPage from './pages/DeviceLogsPage'
+import ActivationCodesPage from './pages/ActivationCodesPage'
 
 const queryClient = new QueryClient()
 
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/lavaggi" element={<LavaggiPage />} />
             <Route path="/lavaggi/:id" element={<LavaggioDetailPage />} />
             <Route path="/devices" element={<DevicesPage />} />
+            <Route path="/activation-codes" element={<ActivationCodesPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/device-logs" element={<DeviceLogsPage />} />
