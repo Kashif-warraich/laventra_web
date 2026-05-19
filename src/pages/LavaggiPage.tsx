@@ -21,7 +21,7 @@ interface Lavaggio {
 export default function LavaggiPage() {
   const navigate = useNavigate()
   const user = getUser()
-  const isSuperAdmin = user?.role === 'super_admin'
+  const isAdmin = user?.role === 'admin'
 
   const [lavaggi, setLavaggi] = useState<Lavaggio[]>([])
   const [page, setPage] = useState(1)
@@ -62,7 +62,7 @@ export default function LavaggiPage() {
   return (
     <div>
       <PageHeader title="Lavaggi" subtitle="Manage your car wash locations">
-        {isSuperAdmin && (
+        {isAdmin && (
           <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-blue hover:bg-blue/90 text-white text-sm font-medium rounded-lg transition-colors">
             + New Lavaggio
           </button>
@@ -101,7 +101,7 @@ export default function LavaggiPage() {
                       <button onClick={() => navigate(`/lavaggi/${l.id}`)} className="px-3 py-1 text-xs bg-el border border-border rounded text-bluel hover:bg-blue/10 transition-colors">
                         View
                       </button>
-                      {isSuperAdmin && (
+                      {isAdmin && (
                         <button onClick={() => handleDelete(l.id)} className="px-3 py-1 text-xs bg-el border border-border rounded text-red hover:bg-red/10 transition-colors">
                           Delete
                         </button>

@@ -40,7 +40,7 @@ export default function App() {
             <Route
               path="/users"
               element={
-                <ProtectedRoute requiredRole="super_admin">
+                <ProtectedRoute requiredRole="admin">
                   <UsersPage />
                 </ProtectedRoute>
               }

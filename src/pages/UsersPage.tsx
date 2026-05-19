@@ -103,8 +103,8 @@ export default function UsersPage() {
                           autoFocus
                           className="px-2 py-1 bg-el border border-blue rounded text-tp text-xs focus:outline-none"
                         >
+                          <option value="owner">owner</option>
                           <option value="admin">admin</option>
-                          <option value="super_admin">super_admin</option>
                         </select>
                       ) : (
                         <span className="capitalize text-ts">{u.role?.replace(/_/g, ' ')}</span>
@@ -134,7 +134,7 @@ export default function UsersPage() {
 }
 
 function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', role: 'admin' })
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', role: 'owner' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -181,8 +181,8 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <div>
             <label className="block text-sm text-ts mb-1">Role</label>
             <select value={form.role} onChange={e => set('role', e.target.value)} className="w-full px-3 py-2 bg-el border border-border rounded-lg text-tp focus:outline-none focus:border-blue">
+              <option value="owner">Owner</option>
               <option value="admin">Admin</option>
-              <option value="super_admin">Super Admin</option>
             </select>
           </div>
           <div className="flex gap-3 pt-2">

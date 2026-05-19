@@ -22,7 +22,7 @@ interface Lavaggio {
 
 export default function DevicesPage() {
   const user = getUser()
-  const isSuperAdmin = user?.role === 'super_admin'
+  const isAdmin = user?.role === 'admin'
 
   const [devices, setDevices] = useState<Device[]>([])
   const [lavaggi, setLavaggi] = useState<Lavaggio[]>([])
@@ -119,7 +119,7 @@ export default function DevicesPage() {
                   <th className="px-5 py-3 font-medium">Status</th>
                   <th className="px-5 py-3 font-medium">Last Seen</th>
                   <th className="px-5 py-3 font-medium">Lavaggio</th>
-                  {isSuperAdmin && <th className="px-5 py-3 font-medium">Actions</th>}
+                  {isAdmin && <th className="px-5 py-3 font-medium">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -130,7 +130,7 @@ export default function DevicesPage() {
                     <td className="px-5 py-3"><StatusBadge status={d.status} /></td>
                     <td className="px-5 py-3 text-ts">{d.last_seen_at ? new Date(d.last_seen_at).toLocaleString() : '--'}</td>
                     <td className="px-5 py-3 text-ts">{d.lavaggio?.name ?? d.lavaggio_name ?? '--'}</td>
-                    {isSuperAdmin && (
+                    {isAdmin && (
                       <td className="px-5 py-3 flex gap-2">
                         <button onClick={() => handleRevoke(d.id)} className="px-3 py-1 text-xs bg-el border border-border rounded text-red hover:bg-red/10 transition-colors">
                           Revoke

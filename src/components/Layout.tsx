@@ -31,7 +31,7 @@ export default function Layout() {
     navigate('/login')
   }
 
-  const items = user?.role === 'super_admin' ? [...navItems, userNavItem] : navItems
+  const items = user?.role === 'admin' ? [...navItems, userNavItem] : navItems
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -83,7 +83,7 @@ export default function Layout() {
               </p>
               <p className="text-xs text-ts">{user?.email}</p>
             </div>
-            <StatusBadge status={user?.role === 'super_admin' ? 'active' : 'pending'} />
+            <StatusBadge status={user?.role === 'admin' ? 'active' : 'pending'} />
             <span className="text-xs text-ts capitalize">{user?.role?.replace(/_/g, ' ')}</span>
           </div>
         </header>

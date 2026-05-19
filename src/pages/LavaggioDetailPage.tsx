@@ -4,6 +4,13 @@ import api from '../lib/api'
 import StatusBadge from '../components/StatusBadge'
 import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
 
+interface Partner {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+}
+
 interface Lavaggio {
   id: number
   name: string
@@ -12,6 +19,15 @@ interface Lavaggio {
   country: string
   status: string
   operational: boolean
+  partners?: Partner[]
+}
+
+interface UserRow {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  role: string
 }
 
 interface Device {
@@ -42,20 +58,27 @@ export default function LavaggioDetailPage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', address: '', city: '', country: '' })
+  const [allOwners, setAllOwners] = useState<UserRow[]>([])
+  const [partnerIds, setPartnerIds] = useState<number[]>([])
+  const [savingPartners, setSavingPartners] = useState(false)
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [lavRes, devRes, evtRes] = await Promise.all([
+        const [lavRes, devRes, evtRes, usrRes] = await Promise.all([
           api.get(`/lavvaggios/${id}`),
           api.get('/devices', { params: { lavvaggio_id: id } }),
           api.get('/car_wash_events', { params: { lavvaggio_id: id, per_page: 10 } }),
+          api.get('/users', { params: { per_page: 200 } }),
         ])
         const l = lavRes.data.data
         setLavaggio(l)
         setForm({ name: l.name, address: l.address ?? '', city: l.city ?? '', country: l.country ?? '' })
+        setPartnerIds((l.partners ?? []).map((p: Partner) => p.id))
         setDevices(devRes.data.data ?? [])
         setEvents(evtRes.data.data ?? [])
+        const owners = (usrRes.data.data ?? []).filter((u: UserRow) => u.role === 'owner')
+        setAllOwners(owners)
       } catch {
         setError('Failed to load lavaggio details.')
       } finally {
@@ -76,6 +99,24 @@ export default function LavaggioDetailPage() {
       setError(err.response?.data?.errors?.[0] ?? 'Failed to update.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const togglePartner = (uid: number) => {
+    setPartnerIds(ids => ids.includes(uid) ? ids.filter(x => x !== uid) : [...ids, uid])
+  }
+
+  const handleSavePartners = async () => {
+    setSavingPartners(true)
+    setError('')
+    try {
+      const res = await api.patch(`/lavvaggios/${id}`, { lavvaggio: { partner_ids: partnerIds } })
+      setLavaggio(res.data.data)
+      setPartnerIds((res.data.data.partners ?? []).map((p: Partner) => p.id))
+    } catch (err: any) {
+      setError(err.response?.data?.errors?.[0] ?? 'Failed to update partners.')
+    } finally {
+      setSavingPartners(false)
     }
   }
 
@@ -114,6 +155,48 @@ export default function LavaggioDetailPage() {
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Partners */}
+      <div className="bg-card border border-border rounded-xl mb-6">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <h3 className="text-sm font-medium text-tp">Partners ({partnerIds.length})</h3>
+          <button
+            onClick={handleSavePartners}
+            disabled={savingPartners}
+            className="px-4 py-1.5 bg-blue text-white text-xs rounded-lg hover:bg-blue/90 disabled:opacity-60 transition-colors"
+          >
+            {savingPartners ? 'Saving...' : 'Save Partners'}
+          </button>
+        </div>
+        {allOwners.length === 0 ? (
+          <EmptyState message="No owner users to assign" />
+        ) : (
+          <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {allOwners.map(u => {
+              const checked = partnerIds.includes(u.id)
+              return (
+                <label
+                  key={u.id}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+                    checked ? 'border-blue bg-blue/10' : 'border-border bg-el hover:bg-el/70'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => togglePartner(u.id)}
+                    className="accent-blue"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm text-tp truncate">{u.first_name} {u.last_name}</div>
+                    <div className="text-xs text-ts truncate">{u.email}</div>
+                  </div>
+                </label>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Linked Devices */}
