@@ -18,6 +18,10 @@ export default function LoginPage() {
     try {
       const res = await api.post('/login', { user: { email, password } })
       const { token, user } = res.data.data
+      if (user?.role !== 'admin') {
+        setError('Access denied. Please use the mobile app.')
+        return
+      }
       saveAuth(token, user)
       navigate('/dashboard')
     } catch (err: any) {
