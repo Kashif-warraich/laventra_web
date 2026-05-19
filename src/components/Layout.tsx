@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { getUser, clearAuth } from '../lib/auth'
+import { useAlert } from '../context/AlertContext'
 import StatusBadge from './StatusBadge'
 
 const navItems = [
@@ -25,10 +26,16 @@ function SvgIcon({ d }: { d: string }) {
 export default function Layout() {
   const user = getUser()
   const navigate = useNavigate()
+  const { showConfirm } = useAlert()
 
   const handleLogout = () => {
-    clearAuth()
-    navigate('/login')
+    showConfirm({
+      title: 'Sign out',
+      message: 'Are you sure you want to sign out?',
+      confirmLabel: 'Sign out',
+      confirmColor: '#FF4D6A',
+      onConfirm: () => { clearAuth(); navigate('/login') },
+    })
   }
 
   const items = user?.role === 'admin' ? [...navItems, userNavItem] : navItems

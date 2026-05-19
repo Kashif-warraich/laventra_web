@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
+import { useAlert } from '../context/AlertContext'
 import StatusBadge from '../components/StatusBadge'
 import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
 
@@ -50,6 +51,7 @@ interface CarWashEvent {
 export default function LavaggioDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { showAlert } = useAlert()
 
   const [lavaggio, setLavaggio] = useState<Lavaggio | null>(null)
   const [devices, setDevices] = useState<Device[]>([])
@@ -95,8 +97,10 @@ export default function LavaggioDetailPage() {
     try {
       const res = await api.patch(`/lavvaggios/${id}`, { lavvaggio: form })
       setLavaggio(res.data.data)
+      showAlert('success', 'Lavaggio updated.')
     } catch (err: any) {
       setError(err.response?.data?.errors?.[0] ?? 'Failed to update.')
+      showAlert('error', err.response?.data?.errors?.[0] ?? 'Failed to update.')
     } finally {
       setSaving(false)
     }
@@ -113,8 +117,10 @@ export default function LavaggioDetailPage() {
       const res = await api.patch(`/lavvaggios/${id}`, { lavvaggio: { partner_ids: partnerIds } })
       setLavaggio(res.data.data)
       setPartnerIds((res.data.data.partners ?? []).map((p: Partner) => p.id))
+      showAlert('success', 'Partners updated.')
     } catch (err: any) {
       setError(err.response?.data?.errors?.[0] ?? 'Failed to update partners.')
+      showAlert('error', err.response?.data?.errors?.[0] ?? 'Failed to update partners.')
     } finally {
       setSavingPartners(false)
     }

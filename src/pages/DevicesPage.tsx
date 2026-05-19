@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import { getUser } from '../lib/auth'
+import { useAlert } from '../context/AlertContext'
 import StatusBadge from '../components/StatusBadge'
 import Pagination from '../components/Pagination'
 import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
@@ -23,6 +24,7 @@ interface Lavaggio {
 export default function DevicesPage() {
   const user = getUser()
   const isAdmin = user?.role === 'admin'
+  const { showAlert, showConfirm } = useAlert()
 
   const [devices, setDevices] = useState<Device[]>([])
   const [lavaggi, setLavaggi] = useState<Lavaggio[]>([])
@@ -57,24 +59,39 @@ export default function DevicesPage() {
 
   useEffect(() => { load(page) }, [page, filterLavaggio, filterStatus])
 
-  const handleRevoke = async (id: number) => {
-    if (!confirm('Revoke this device token?')) return
-    try {
-      await api.patch(`/devices/${id}/revoke`)
-      load(page)
-    } catch {
-      setError('Failed to revoke token.')
-    }
+  const handleRevoke = (id: number) => {
+    showConfirm({
+      title: 'Revoke Device Token',
+      message: 'The device will no longer be able to connect.',
+      confirmLabel: 'Revoke',
+      onConfirm: async () => {
+        try {
+          await api.patch(`/devices/${id}/revoke`)
+          load(page)
+          showAlert('success', 'Token revoked.')
+        } catch {
+          showAlert('error', 'Failed to revoke token.')
+        }
+      },
+    })
   }
 
-  const handleRotate = async (id: number) => {
-    if (!confirm('Rotate this device token?')) return
-    try {
-      await api.patch(`/devices/${id}/rotate_token`)
-      load(page)
-    } catch {
-      setError('Failed to rotate token.')
-    }
+  const handleRotate = (id: number) => {
+    showConfirm({
+      title: 'Rotate Token',
+      message: 'A new token will be generated. The device must re-authenticate.',
+      confirmLabel: 'Rotate',
+      confirmColor: '#F5A623',
+      onConfirm: async () => {
+        try {
+          await api.patch(`/devices/${id}/rotate_token`)
+          load(page)
+          showAlert('success', 'Token rotated.')
+        } catch {
+          showAlert('error', 'Failed to rotate token.')
+        }
+      },
+    })
   }
 
   if (loading && devices.length === 0) return <Spinner />

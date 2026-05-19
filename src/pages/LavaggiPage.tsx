@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import { getUser } from '../lib/auth'
+import { useAlert } from '../context/AlertContext'
 import StatusBadge from '../components/StatusBadge'
 import Pagination from '../components/Pagination'
 import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
@@ -22,6 +23,7 @@ export default function LavaggiPage() {
   const navigate = useNavigate()
   const user = getUser()
   const isAdmin = user?.role === 'admin'
+  const { showAlert, showConfirm } = useAlert()
 
   const [lavaggi, setLavaggi] = useState<Lavaggio[]>([])
   const [page, setPage] = useState(1)
@@ -46,14 +48,21 @@ export default function LavaggiPage() {
 
   useEffect(() => { load(page) }, [page])
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this lavaggio?')) return
-    try {
-      await api.delete(`/lavvaggios/${id}`)
-      load(page)
-    } catch {
-      setError('Failed to delete lavaggio.')
-    }
+  const handleDelete = (id: number) => {
+    showConfirm({
+      title: 'Delete Lavaggio',
+      message: 'This will permanently delete this lavaggio and all linked data.',
+      confirmLabel: 'Delete',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/lavvaggios/${id}`)
+          load(page)
+          showAlert('success', 'Lavaggio deleted.')
+        } catch {
+          showAlert('error', 'Failed to delete lavaggio.')
+        }
+      },
+    })
   }
 
   if (loading) return <Spinner />
@@ -69,7 +78,7 @@ export default function LavaggiPage() {
         )}
       </PageHeader>
 
-      {showModal && <CreateLavaggioModal onClose={() => setShowModal(false)} onCreated={() => { setShowModal(false); load(1) }} />}
+      {showModal && <CreateLavaggioModal onClose={() => setShowModal(false)} onCreated={() => { setShowModal(false); load(1); showAlert('success', 'Lavaggio created.') }} />}
 
       {lavaggi.length === 0 ? (
         <EmptyState message="No lavaggi found" />

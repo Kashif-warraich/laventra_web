@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
+import { useAlert } from '../context/AlertContext'
 import StatusBadge from '../components/StatusBadge'
 import Pagination from '../components/Pagination'
 import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
@@ -15,6 +16,7 @@ interface UserRecord {
 }
 
 export default function UsersPage() {
+  const { showAlert, showConfirm } = useAlert()
   const [users, setUsers] = useState<UserRecord[]>([])
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -39,14 +41,21 @@ export default function UsersPage() {
 
   useEffect(() => { load(page) }, [page])
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this user?')) return
-    try {
-      await api.delete(`/users/${id}`)
-      load(page)
-    } catch {
-      setError('Failed to delete user.')
-    }
+  const handleDelete = (id: number) => {
+    showConfirm({
+      title: 'Delete User',
+      message: 'This will permanently delete the user account.',
+      confirmLabel: 'Delete',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/users/${id}`)
+          load(page)
+          showAlert('success', 'User deleted.')
+        } catch {
+          showAlert('error', 'Failed to delete user.')
+        }
+      },
+    })
   }
 
   const handleRoleUpdate = async (id: number, role: string) => {
@@ -54,8 +63,9 @@ export default function UsersPage() {
       await api.patch(`/users/${id}`, { user: { role } })
       load(page)
       setEditingUser(null)
+      showAlert('success', 'Role updated.')
     } catch {
-      setError('Failed to update role.')
+      showAlert('error', 'Failed to update role.')
     }
   }
 
@@ -71,7 +81,7 @@ export default function UsersPage() {
 
       {error && <div className="bg-red/10 border border-red/30 text-red rounded-lg px-4 py-3 text-sm mb-4">{error}</div>}
 
-      {showModal && <CreateUserModal onClose={() => setShowModal(false)} onCreated={() => { setShowModal(false); load(1) }} />}
+      {showModal && <CreateUserModal onClose={() => setShowModal(false)} onCreated={() => { setShowModal(false); load(1); showAlert('success', 'User created.') }} />}
 
       {users.length === 0 ? (
         <EmptyState message="No users found" />
