@@ -3,7 +3,7 @@ import api from '../lib/api'
 import { useAlert } from '../context/AlertContext'
 import StatusBadge from '../components/StatusBadge'
 import Pagination from '../components/Pagination'
-import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
+import { PageHeader, Spinner, EmptyState } from './DashboardPage'
 
 interface UserRecord {
   id: number
