@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
+import { useAlert } from '../context/AlertContext'
 import StatusBadge from '../components/StatusBadge'
 import Pagination from '../components/Pagination'
-import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
+import { PageHeader, Spinner, EmptyState } from './DashboardPage'
 
 interface UserRecord {
   id: number
@@ -15,6 +16,7 @@ interface UserRecord {
 }
 
 export default function UsersPage() {
+  const { showAlert, showConfirm } = useAlert()
   const [users, setUsers] = useState<UserRecord[]>([])
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -39,14 +41,21 @@ export default function UsersPage() {
 
   useEffect(() => { load(page) }, [page])
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this user?')) return
-    try {
-      await api.delete(`/users/${id}`)
-      load(page)
-    } catch {
-      setError('Failed to delete user.')
-    }
+  const handleDelete = (id: number) => {
+    showConfirm({
+      title: 'Delete User',
+      message: 'This will permanently delete the user account.',
+      confirmLabel: 'Delete',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/users/${id}`)
+          load(page)
+          showAlert('success', 'User deleted.')
+        } catch {
+          showAlert('error', 'Failed to delete user.')
+        }
+      },
+    })
   }
 
   const handleRoleUpdate = async (id: number, role: string) => {
@@ -54,8 +63,9 @@ export default function UsersPage() {
       await api.patch(`/users/${id}`, { user: { role } })
       load(page)
       setEditingUser(null)
+      showAlert('success', 'Role updated.')
     } catch {
-      setError('Failed to update role.')
+      showAlert('error', 'Failed to update role.')
     }
   }
 
@@ -71,7 +81,7 @@ export default function UsersPage() {
 
       {error && <div className="bg-red/10 border border-red/30 text-red rounded-lg px-4 py-3 text-sm mb-4">{error}</div>}
 
-      {showModal && <CreateUserModal onClose={() => setShowModal(false)} onCreated={() => { setShowModal(false); load(1) }} />}
+      {showModal && <CreateUserModal onClose={() => setShowModal(false)} onCreated={() => { setShowModal(false); load(1); showAlert('success', 'User created.') }} />}
 
       {users.length === 0 ? (
         <EmptyState message="No users found" />
@@ -103,8 +113,8 @@ export default function UsersPage() {
                           autoFocus
                           className="px-2 py-1 bg-el border border-blue rounded text-tp text-xs focus:outline-none"
                         >
+                          <option value="owner">owner</option>
                           <option value="admin">admin</option>
-                          <option value="super_admin">super_admin</option>
                         </select>
                       ) : (
                         <span className="capitalize text-ts">{u.role?.replace(/_/g, ' ')}</span>
@@ -134,18 +144,26 @@ export default function UsersPage() {
 }
 
 function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', role: 'admin' })
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', role: 'owner' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
+
+  // Owners go through the email activation flow — the admin doesn't pick
+  // their password; the backend mails an activation link that auto-logs
+  // them in and forces a change-password screen.
+  const isOwner = form.role === 'owner'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setError('')
     try {
-      await api.post('/signup', { user: form })
+      const payload = isOwner
+        ? { user: { first_name: form.first_name, last_name: form.last_name, email: form.email, role: form.role } }
+        : { user: form }
+      await api.post('/signup', payload)
       onCreated()
     } catch (err: any) {
       setError(err.response?.data?.errors?.[0] ?? 'Failed to create user.')
@@ -175,16 +193,22 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
             <input type="email" value={form.email} onChange={e => set('email', e.target.value)} required className="w-full px-3 py-2 bg-el border border-border rounded-lg text-tp focus:outline-none focus:border-blue" />
           </div>
           <div>
-            <label className="block text-sm text-ts mb-1">Password</label>
-            <input type="password" value={form.password} onChange={e => set('password', e.target.value)} required className="w-full px-3 py-2 bg-el border border-border rounded-lg text-tp focus:outline-none focus:border-blue" />
-          </div>
-          <div>
             <label className="block text-sm text-ts mb-1">Role</label>
             <select value={form.role} onChange={e => set('role', e.target.value)} className="w-full px-3 py-2 bg-el border border-border rounded-lg text-tp focus:outline-none focus:border-blue">
+              <option value="owner">Owner</option>
               <option value="admin">Admin</option>
-              <option value="super_admin">Super Admin</option>
             </select>
           </div>
+          {isOwner ? (
+            <div className="bg-blue/10 border border-blue/30 text-bluel rounded-lg px-3 py-2 text-xs">
+              An activation email will be sent to this address. Tapping the link opens the mobile app, signs them in, and prompts them to choose a password.
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm text-ts mb-1">Password</label>
+              <input type="password" value={form.password} onChange={e => set('password', e.target.value)} required className="w-full px-3 py-2 bg-el border border-border rounded-lg text-tp focus:outline-none focus:border-blue" />
+            </div>
+          )}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 bg-el border border-border rounded-lg text-ts hover:text-tp transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="flex-1 py-2 bg-blue text-white rounded-lg hover:bg-blue/90 disabled:opacity-60 transition-colors">

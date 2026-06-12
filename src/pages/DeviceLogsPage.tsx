@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import Pagination from '../components/Pagination'
-import { PageHeader, Spinner, ErrorMsg, EmptyState } from './DashboardPage'
+import { PageHeader, Spinner, EmptyState } from './DashboardPage'
 
 interface DeviceLog {
   id: number
