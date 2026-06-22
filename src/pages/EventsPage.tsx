@@ -12,8 +12,8 @@ interface CarWashEvent {
   started_at: string
   duration: number | null
   confidence: number | null
-  lavaggio?: { id: number; name: string }
-  lavaggio_name?: string
+  lavvaggio?: { id: number; name: string }
+  lavvaggio_name?: string
 }
 
 interface Lavaggio {
@@ -127,7 +127,7 @@ export default function EventsPage() {
                     <td className="px-5 py-3 text-tp font-mono">{ev.plate_number ?? '--'}</td>
                     <td className="px-5 py-3 text-ts capitalize">{ev.event_type?.replace(/_/g, ' ')}</td>
                     <td className="px-5 py-3"><StatusBadge status={ev.status} /></td>
-                    <td className="px-5 py-3 text-ts">{ev.lavaggio?.name ?? ev.lavaggio_name ?? '--'}</td>
+                    <td className="px-5 py-3 text-ts">{ev.lavvaggio?.name ?? ev.lavvaggio_name ?? '--'}</td>
                     <td className="px-5 py-3 text-ts">{ev.started_at ? new Date(ev.started_at).toLocaleString() : '--'}</td>
                     <td className="px-5 py-3 text-ts">{ev.duration != null ? `${ev.duration}s` : '--'}</td>
                     <td className="px-5 py-3 text-ts">{ev.confidence != null ? `${(ev.confidence * 100).toFixed(0)}%` : '--'}</td>

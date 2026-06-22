@@ -17,8 +17,8 @@ interface Device {
   firmware_version?: string
   stream_url?: string
   kind?: string
-  lavaggio?: { id: number; name: string }
-  lavaggio_name?: string
+  lavvaggio?: { id: number; name: string }
+  lavvaggio_name?: string
 }
 
 interface Lavaggio {
@@ -179,7 +179,7 @@ export default function DevicesPage() {
                     <td className="px-5 py-3 text-ts capitalize">{d.device_type?.replace(/_/g, ' ')}</td>
                     <td className="px-5 py-3"><StatusBadge status={d.status} /></td>
                     <td className="px-5 py-3 text-ts">{d.last_seen_at ? new Date(d.last_seen_at).toLocaleString() : '--'}</td>
-                    <td className="px-5 py-3 text-ts">{d.lavaggio?.name ?? d.lavaggio_name ?? '--'}</td>
+                    <td className="px-5 py-3 text-ts">{d.lavvaggio?.name ?? d.lavvaggio_name ?? '--'}</td>
                     {isAdmin && (
                       <td className="px-5 py-3 flex gap-1">
                         <button onClick={() => setEditingDevice(d)} className="p-1.5 rounded-lg transition-colors text-bluel hover:bg-blue/10" title="Edit">
@@ -213,7 +213,7 @@ export default function DevicesPage() {
 
 function DeviceFormModal({ device, lavaggi, onClose, onSaved }: { device?: Device; lavaggi: Lavaggio[]; onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = useState({
-    lavvaggio_id: device?.lavaggio?.id?.toString() ?? '',
+    lavvaggio_id: device?.lavvaggio?.id?.toString() ?? '',
     name: device?.name ?? '',
     serial_number: device?.serial_number ?? '',
     device_type: device?.device_type ?? 'mini_pc',

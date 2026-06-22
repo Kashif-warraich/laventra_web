@@ -10,8 +10,8 @@ interface DeviceLog {
   created_at: string
   device?: { serial_number: string }
   device_serial?: string
-  lavaggio?: { name: string }
-  lavaggio_name?: string
+  lavvaggio?: { name: string }
+  lavvaggio_name?: string
 }
 
 interface Lavaggio {
@@ -101,7 +101,7 @@ export default function DeviceLogsPage() {
                 {logs.map(log => (
                   <tr key={log.id} className="border-b border-border/50 hover:bg-el/50 transition-colors">
                     <td className="px-5 py-3 text-tp font-mono">{log.device?.serial_number ?? log.device_serial ?? '--'}</td>
-                    <td className="px-5 py-3 text-ts">{log.lavaggio?.name ?? log.lavaggio_name ?? '--'}</td>
+                    <td className="px-5 py-3 text-ts">{log.lavvaggio?.name ?? log.lavvaggio_name ?? '--'}</td>
                     <td className="px-5 py-3">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
                         log.event_type === 'online' ? 'bg-teal/20 text-teal' : log.event_type === 'offline' ? 'bg-red/20 text-red' : 'bg-tm/30 text-ts'
