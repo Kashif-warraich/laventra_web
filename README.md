@@ -10,7 +10,7 @@ Requires **Node.js 20+**.
 The app talks to the Rails backend. The API URL is set in `src/lib/api.ts`:
 
 ```ts
-const api = axios.create({ baseURL: 'http://127.0.0.1:3000/api/v1' })
+const api = axios.create({ baseURL: 'https://api.laventra.live/api/v1' })
 ```
 
 Change it there if your backend runs somewhere else. Make sure the backend is
