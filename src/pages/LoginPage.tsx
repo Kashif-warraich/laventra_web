@@ -29,7 +29,21 @@ export default function LoginPage() {
       saveAuth(d.token, d.user)
       navigate('/dashboard', { replace: true })
     } catch (e: any) {
-      setError(e.response?.data?.errors?.[0] ?? 'Invalid email or password')
+        console.log('LOGIN ERROR FULL:', e)
+
+        const status = e.response?.status
+        const data = e.response?.data
+
+        // Try to extract the most useful message
+        const message =
+            data?.error ||
+            data?.message ||
+            data?.errors?.join?.(', ') ||
+            JSON.stringify(data) ||
+            e.message ||
+            'Unknown error'
+
+        setError(`(${status}) ${message}`)
     } finally {
       setLoading(false)
     }
