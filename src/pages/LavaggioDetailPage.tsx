@@ -46,8 +46,8 @@ interface Device {
 
 interface CarWashEvent {
   id: number
-  plate_number: string
-  event_type: string
+  vehicle_plate: string
+  vehicle_type: string
   status: string
   started_at: string
   confidence: number | null
@@ -332,11 +332,11 @@ export default function LavaggioDetailPage() {
               <tbody>
                 {events.map(ev => (
                   <tr key={ev.id} className="border-b border-border/50 hover:bg-el/50">
-                    <td className="px-5 py-3 text-tp font-mono">{ev.plate_number ?? '--'}</td>
-                    <td className="px-5 py-3 text-ts capitalize">{ev.event_type?.replace(/_/g, ' ')}</td>
+                    <td className="px-5 py-3 text-tp font-mono">{ev.vehicle_plate ?? '--'}</td>
+                    <td className="px-5 py-3 text-ts capitalize">{ev.vehicle_type?.replace(/_/g, ' ') ?? '--'}</td>
                     <td className="px-5 py-3"><StatusBadge status={ev.status} /></td>
                     <td className="px-5 py-3 text-ts">{ev.started_at ? new Date(ev.started_at).toLocaleString() : '--'}</td>
-                    <td className="px-5 py-3 text-ts">{ev.confidence != null ? `${(ev.confidence * 100).toFixed(0)}%` : '--'}</td>
+                    <td className="px-5 py-3 text-ts">{ev.confidence != null ? `${ev.confidence.toFixed(0)}%` : '--'}</td>
                   </tr>
                 ))}
               </tbody>

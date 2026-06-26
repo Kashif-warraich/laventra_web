@@ -7,6 +7,7 @@ const colorMap: Record<string, string> = {
   active:     'bg-teal/20 text-teal',
   online:     'bg-teal/20 text-teal',
   operational:'bg-teal/20 text-teal',
+  success:    'bg-teal/20 text-teal',
   completed:  'bg-teal/20 text-teal',
   ready:      'bg-teal/20 text-teal',
   inactive:   'bg-red/20 text-red',

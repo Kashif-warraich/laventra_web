@@ -5,8 +5,8 @@ import BarChart from '../components/BarChart'
 import { ICar, ICamera, IAi, IEvents } from '../components/Icons'
 import api from '../lib/api'
 
-const weekData = [{l:'M',v:52},{l:'T',v:68},{l:'W',v:45},{l:'T',v:71},{l:'F',v:80},{l:'S',v:44},{l:'S',v:36}]
-const hourData = [{l:'6',v:8},{l:'8',v:22},{l:'10',v:41},{l:'12',v:35},{l:'14',v:28},{l:'16',v:45},{l:'18',v:38},{l:'20',v:15}]
+const emptyWeek = ['M','T','W','T','F','S','S'].map(l => ({ l, v: 0 }))
+const emptyHours = Array.from({ length: 24 }, (_, h) => ({ l: h % 3 === 0 ? String(h) : '', v: 0 }))
 
 /* ── Shared tiny components used across pages ── */
 
@@ -51,6 +51,8 @@ export default function DashboardPage() {
   const [lavaggi, setLavaggi]   = useState<any[]>([])
   const [devices, setDevices]   = useState<any[]>([])
   const [events, setEvents]     = useState<any[]>([])
+  const [weekData, setWeekData] = useState(emptyWeek)
+  const [hourData, setHourData] = useState(emptyHours)
   const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
@@ -58,17 +60,25 @@ export default function DashboardPage() {
       api.get('/lavvaggios'),
       api.get('/devices'),
       api.get('/car_wash_events', { params: { per_page: 6 } }),
-    ]).then(([lRes, dRes, eRes]) => {
+      api.get('/car_wash_events/stats'),
+    ]).then(([lRes, dRes, eRes, sRes]) => {
       setLavaggi(lRes.data?.data ?? [])
       setDevices(dRes.data?.data ?? [])
       setEvents(eRes.data?.data ?? [])
+      const stats = sRes.data?.data
+      if (stats?.this_week) {
+        setWeekData(stats.this_week.map((d: any) => ({ l: d.label.charAt(0), v: d.value })))
+      }
+      if (stats?.today_by_hour) {
+        setHourData(stats.today_by_hour.map((d: any) => ({ l: d.hour % 3 === 0 ? String(d.hour) : '', v: d.value })))
+      }
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
   const onlineDevices = devices.filter((d: any) => d.status === 'active').length
   const totalDevices  = devices.length
   const todayWashes   = lavaggi.reduce((a: number, l: any) => a + (l.today_washes ?? 0), 0)
-  const openErrors    = events.filter((e: any) => e.status === 1).length
+  const openErrors    = events.filter((e: any) => e.status === 'error').length
 
   const kpis = [
     { label:"Today's Events",    value: loading ? '…' : String(todayWashes),                sub:'+12% vs yesterday',   color:T.blue,  Icon:ICar,    trend:12 },
@@ -156,13 +166,13 @@ export default function DashboardPage() {
             </thead>
             <tbody>
               {events.map((e: any) => {
-                const conf = e.confidence ? +(e.confidence * 100).toFixed(1) : null
-                const statusColor = e.status === 0 ? T.teal : e.status === 1 ? T.red : T.amber
-                const statusLabel = e.status === 0 ? 'success' : e.status === 1 ? 'error' : 'processing'
+                const conf = e.confidence != null ? +e.confidence.toFixed(1) : null
+                const statusColor = e.status === 'success' ? T.teal : e.status === 'error' ? T.red : T.amber
+                const statusLabel = e.status ?? 'processing'
                 const startedAt = e.started_at ? new Date(e.started_at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '—'
                 return (
                   <tr key={e.id} style={{ borderTop:`1px solid ${T.border}` }}>
-                    <td style={{ padding:'9px 8px', fontSize:14, fontWeight:700, color:T.tp, fontFamily:'monospace' }}>{e.plate_number ?? '—'}</td>
+                    <td style={{ padding:'9px 8px', fontSize:14, fontWeight:700, color:T.tp, fontFamily:'monospace' }}>{e.vehicle_plate ?? '—'}</td>
                     <td style={{ padding:'9px 8px', fontSize:12, color:T.ts }}>{startedAt}</td>
                     <td style={{ padding:'9px 8px', fontSize:12, color:T.ts }}>{e.lavvaggio?.name ?? '—'}</td>
                     <td style={{ padding:'9px 8px' }}>
