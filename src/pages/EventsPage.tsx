@@ -6,11 +6,11 @@ import { PageHeader, Spinner, EmptyState } from './DashboardPage'
 
 interface CarWashEvent {
   id: number
-  plate_number: string
-  event_type: string
+  vehicle_plate: string
+  vehicle_type: string
   status: string
   started_at: string
-  duration: number | null
+  duration_seconds: number | null
   confidence: number | null
   lavvaggio?: { id: number; name: string }
   lavvaggio_name?: string
@@ -41,8 +41,8 @@ export default function EventsPage() {
       const params: Record<string, any> = { page: p, per_page: 20 }
       if (filterLavaggio) params.lavvaggio_id = filterLavaggio
       if (filterStatus) params.status = filterStatus
-      if (dateFrom) params.date_from = dateFrom
-      if (dateTo) params.date_to = dateTo
+      if (dateFrom) params.from = dateFrom
+      if (dateTo) params.to = dateTo
 
       const [evtRes, lavRes] = await Promise.all([
         api.get('/car_wash_events', { params }),
@@ -84,9 +84,8 @@ export default function EventsPage() {
           className="px-3 py-2 bg-el border border-border rounded-lg text-tp text-sm focus:outline-none focus:border-blue"
         >
           <option value="">All Statuses</option>
-          <option value="completed">Completed</option>
-          <option value="in_progress">In Progress</option>
-          <option value="failed">Failed</option>
+          <option value="success">Success</option>
+          <option value="error">Error</option>
         </select>
         <input
           type="date"
@@ -124,13 +123,13 @@ export default function EventsPage() {
               <tbody>
                 {events.map(ev => (
                   <tr key={ev.id} className="border-b border-border/50 hover:bg-el/50 transition-colors">
-                    <td className="px-5 py-3 text-tp font-mono">{ev.plate_number ?? '--'}</td>
-                    <td className="px-5 py-3 text-ts capitalize">{ev.event_type?.replace(/_/g, ' ')}</td>
+                    <td className="px-5 py-3 text-tp font-mono">{ev.vehicle_plate ?? '--'}</td>
+                    <td className="px-5 py-3 text-ts capitalize">{ev.vehicle_type?.replace(/_/g, ' ') ?? '--'}</td>
                     <td className="px-5 py-3"><StatusBadge status={ev.status} /></td>
                     <td className="px-5 py-3 text-ts">{ev.lavvaggio?.name ?? ev.lavvaggio_name ?? '--'}</td>
                     <td className="px-5 py-3 text-ts">{ev.started_at ? new Date(ev.started_at).toLocaleString() : '--'}</td>
-                    <td className="px-5 py-3 text-ts">{ev.duration != null ? `${ev.duration}s` : '--'}</td>
-                    <td className="px-5 py-3 text-ts">{ev.confidence != null ? `${(ev.confidence * 100).toFixed(0)}%` : '--'}</td>
+                    <td className="px-5 py-3 text-ts">{ev.duration_seconds != null ? `${ev.duration_seconds}s` : '--'}</td>
+                    <td className="px-5 py-3 text-ts">{ev.confidence != null ? `${ev.confidence.toFixed(0)}%` : '--'}</td>
                   </tr>
                 ))}
               </tbody>
