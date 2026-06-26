@@ -56,23 +56,22 @@ export default function DashboardPage() {
   const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
-    Promise.all([
-      api.get('/lavvaggios'),
-      api.get('/devices'),
-      api.get('/car_wash_events', { params: { per_page: 6 } }),
-      api.get('/car_wash_events/stats'),
-    ]).then(([lRes, dRes, eRes, sRes]) => {
-      setLavaggi(lRes.data?.data ?? [])
-      setDevices(dRes.data?.data ?? [])
-      setEvents(eRes.data?.data ?? [])
-      const stats = sRes.data?.data
+    // Each call is independent — one failing endpoint (e.g. stats before it's
+    // deployed) must not blank out the rest of the dashboard.
+    api.get('/lavvaggios').then(r => setLavaggi(r.data?.data ?? [])).catch(() => {})
+    api.get('/devices').then(r => setDevices(r.data?.data ?? [])).catch(() => {})
+    api.get('/car_wash_events', { params: { per_page: 6 } })
+      .then(r => setEvents(r.data?.data ?? [])).catch(() => {})
+      .finally(() => setLoading(false))
+    api.get('/car_wash_events/stats').then(r => {
+      const stats = r.data?.data
       if (stats?.this_week) {
         setWeekData(stats.this_week.map((d: any) => ({ l: d.label.charAt(0), v: d.value })))
       }
       if (stats?.today_by_hour) {
         setHourData(stats.today_by_hour.map((d: any) => ({ l: d.hour % 3 === 0 ? String(d.hour) : '', v: d.value })))
       }
-    }).catch(() => {}).finally(() => setLoading(false))
+    }).catch(() => {})
   }, [])
 
   const onlineDevices = devices.filter((d: any) => d.status === 'active').length
