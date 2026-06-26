@@ -53,6 +53,7 @@ export default function DashboardPage() {
   const [events, setEvents]     = useState<any[]>([])
   const [weekData, setWeekData] = useState(emptyWeek)
   const [hourData, setHourData] = useState(emptyHours)
+  const [avgConfidence, setAvgConfidence] = useState<number | null>(null)
   const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function DashboardPage() {
       if (stats?.today_by_hour) {
         setHourData(stats.today_by_hour.map((d: any) => ({ l: d.hour % 3 === 0 ? String(d.hour) : '', v: d.value })))
       }
+      if (stats?.avg_confidence != null) setAvgConfidence(stats.avg_confidence)
     }).catch(() => {})
   }, [])
 
@@ -82,7 +84,7 @@ export default function DashboardPage() {
   const kpis = [
     { label:"Today's Events",    value: loading ? '…' : String(todayWashes),                sub:'+12% vs yesterday',   color:T.blue,  Icon:ICar,    trend:12 },
     { label:'Active Devices',    value: loading ? '…' : `${onlineDevices}/${totalDevices}`, sub:'Device status',        color:T.teal,  Icon:ICamera, trend:0  },
-    { label:'Avg AI Confidence', value:'96.4%',                                              sub:'Model v2.1',           color:T.amber, Icon:IAi,     trend:2  },
+    { label:'Avg AI Confidence', value: loading ? '…' : avgConfidence != null ? `${avgConfidence}%` : '—', sub:'All events', color:T.amber, Icon:IAi, trend:0 },
     { label:'Open Errors',       value: loading ? '…' : String(openErrors),                 sub:'Needs action',         color:T.red,   Icon:IEvents, trend:-1 },
   ]
 
