@@ -1,0 +1,4 @@
+# SPA fallback: let React Router handle client-side routes.
+# Without this, reloading or directly opening a deep link (e.g. /devices)
+# makes Netlify look for a matching file, finds none, and returns 404.
+/*    /index.html   200
